@@ -47,7 +47,6 @@ public:
         assetManager = manager;
         createProgram();
         createVertexBuffer();
-        createTexture();
     }
 
     void draw() {
@@ -64,6 +63,19 @@ public:
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+
+    void createTexture(int width, int height, GLubyte* data) {
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
 private:
     void createProgram() {
         GLuint vertex = createShader(GL_VERTEX_SHADER, vertexShader);
@@ -121,33 +133,6 @@ private:
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    void createTexture() {
-        AAsset* asset = AAssetManager_open(assetManager, "bricks.jpg", AASSET_MODE_UNKNOWN);
-        if(asset == nullptr) {
-
-        }
-
-        GLuint bufferSize = 256*258*4;
-        GLubyte buffer[bufferSize];
-        GLubyte* data = (GLubyte*)AAsset_read(asset, buffer, bufferSize);
-        if(data == nullptr) {
-
-        }
-
-        
-
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-
     GLuint program;
     GLuint vbo;
     GLuint texture;
@@ -160,6 +145,7 @@ Engine engine;
 extern "C" {
     JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_init(JNIEnv* env, jobject, int width, int height, jobject assetManager);
     JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_draw(JNIEnv* env, jobject);
+    JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_createTexture(JNIEnv* env, jobject, int width, int height, jobject bitmap);
 }
 
 JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_init(JNIEnv* env, jobject, int width, int height, jobject assetManager) {
@@ -168,5 +154,10 @@ JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_init(JNIEnv* env, job
 
 JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_draw(JNIEnv* env, jobject) {
     engine.draw();
+}
+
+JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_createTexture(JNIEnv* env, jobject, int width, int height, jobject bytes) {
+    GLubyte* buffer = (GLubyte*)bytes;
+    engine.createTexture(width, height, buffer);
 }
 
