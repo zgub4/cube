@@ -8,7 +8,8 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/cpp/engine.cpp )
+             src/main/cpp/engine.cpp
+             src/main/cpp/stb_image.h )
 
 find_library( # Sets the name of the path variable.
               log-lib
@@ -22,4 +23,5 @@ target_link_libraries( # Specifies the target library.
 
                        # Links the target library to the log library
                        # included in the NDK.
-                       ${log-lib} )
+                       ${log-lib}
+                       android )
