@@ -13,7 +13,7 @@ public class Main extends Activity {
         super.onCreate(savedInstanceState);
         surface = new GLSurfaceView(this);
         surface.setEGLContextClientVersion(2);
-        surface.setRenderer(new Renderer(getResources().getAssets()));
+        surface.setRenderer(new Renderer());
         setContentView(surface);
     }
 

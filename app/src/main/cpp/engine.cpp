@@ -4,6 +4,9 @@
 #include <android/asset_manager_jni.h>
 #include <android/asset_manager.h>
 #include <android/bitmap.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 //#define STB_IMAGE_IMPLEMENTATION
 //#include "stb_image.h"
@@ -11,24 +14,62 @@
 #include <vector>
 
 const GLfloat vertices[] = {
-    -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-    0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-    0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
-const GLint indices[] = {
-        0, 1, 2, 1, 2, 3
-};
 
 const char* vertexShader =
-        "attribute vec4 inPosition;\n"
+        "attribute vec3 inPosition;\n"
         "attribute vec2 inCoord;\n"
+        "uniform mat4 model;\n"
+        "uniform mat4 view;\n"
+        "uniform mat4 projection;\n"
+        "\n"
         "varying vec2 texCoord;\n"
         "void main()\n"
         "{\n"
         "    texCoord = inCoord;\n"
-        "    gl_Position = inPosition;\n"
+        "    gl_Position = projection * view * model * vec4(inPosition, 1.0);\n"
         "}";
 
 const char* fragmentShader =
@@ -38,42 +79,47 @@ const char* fragmentShader =
         "void main()\n"
         "{\n"
         "    vec4 color = texture2D(tex, texCoord);\n"
-        "    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
+        "    gl_FragColor = vec4(texCoord.x, texCoord.y, texCoord.x, 1.0);\n"
         "}";
 
 class Engine {
 public:
-    void init(int width, int height, AAssetManager* manager) {
-        assetManager = manager;
+    void init(int width, int height) {
+        this->width = width;
+        this->height = height;
         createProgram();
         createVertexBuffer();
     }
 
     void draw() {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(program);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBindTexture(GL_TEXTURE_2D, texture);
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-//        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glm::mat4 model;
+        model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glm::mat4 view;
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -5.0f));
+
+        float aspectRatio = (float)width / (float)height;
+        glm::mat4 projection;
+        projection = glm::perspective(45.0f, aspectRatio, 0.1f, 100.0f);
+
+
+        GLint modelLoc = glGetUniformLocation(program, "model");
+        GLint viewLoc = glGetUniformLocation(program, "view");
+        GLint projectionLoc = glGetUniformLocation(program, "projection");
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    void createTexture(int width, int height, GLubyte* data) {
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
 private:
@@ -119,10 +165,6 @@ private:
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
 
-        GLuint ebo;
-        glGenBuffers(1, &ebo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices, GL_STATIC_DRAW);
 
         GLuint positionLoc = (GLuint)glGetAttribLocation(program, "inPosition");
         glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), nullptr);
@@ -135,29 +177,23 @@ private:
 
     GLuint program;
     GLuint vbo;
-    GLuint texture;
-    AAssetManager* assetManager;
+    int width;
+    int height;
 };
 
 Engine engine;
 
 
 extern "C" {
-    JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_init(JNIEnv* env, jobject, int width, int height, jobject assetManager);
+    JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_init(JNIEnv* env, jobject, int width, int height);
     JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_draw(JNIEnv* env, jobject);
-    JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_createTexture(JNIEnv* env, jobject, int width, int height, jobject bitmap);
 }
 
-JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_init(JNIEnv* env, jobject, int width, int height, jobject assetManager) {
-    engine.init(width, height, AAssetManager_fromJava(env, assetManager));
+JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_init(JNIEnv* env, jobject, int width, int height) {
+    engine.init(width, height);
 }
 
 JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_draw(JNIEnv* env, jobject) {
     engine.draw();
-}
-
-JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_createTexture(JNIEnv* env, jobject, int width, int height, jobject bytes) {
-    GLubyte* buffer = (GLubyte*)bytes;
-    engine.createTexture(width, height, buffer);
 }
 
