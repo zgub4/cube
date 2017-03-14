@@ -4,6 +4,7 @@
 #include <android/asset_manager_jni.h>
 #include <android/asset_manager.h>
 #include <android/bitmap.h>
+#include <time.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -19,7 +20,7 @@ const GLfloat vertices[] = {
         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
@@ -89,6 +90,8 @@ public:
         this->height = height;
         createProgram();
         createVertexBuffer();
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
     }
 
     void draw() {
@@ -99,10 +102,10 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
         glm::mat4 model;
-        model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(45.0f), glm::vec3(-1.0f, 1.0f, 0.0f));
 
         glm::mat4 view;
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -5.0f));
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -4.0f));
 
         float aspectRatio = (float)width / (float)height;
         glm::mat4 projection;
@@ -164,7 +167,7 @@ private:
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
-
+        auto x = sizeof(vertices);
 
         GLuint positionLoc = (GLuint)glGetAttribLocation(program, "inPosition");
         glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), nullptr);
