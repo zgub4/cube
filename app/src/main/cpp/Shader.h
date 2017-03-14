@@ -6,9 +6,9 @@
 
 class Shader {
 public:
-    void createProgram() {
-        GLuint vertex = createShader(GL_VERTEX_SHADER, vertexShader);
-        GLuint fragment = createShader(GL_FRAGMENT_SHADER, fragmentShader);
+    void createProgram(const char* vertexSource, const char* fragmentSource) {
+        GLuint vertex = createShader(GL_VERTEX_SHADER, vertexSource);
+        GLuint fragment = createShader(GL_FRAGMENT_SHADER, fragmentSource);
         program = glCreateProgram();
         glAttachShader(program, vertex);
         glAttachShader(program, fragment);
@@ -24,10 +24,6 @@ public:
         }
         glDeleteShader(vertex);
         glDeleteShader(fragment);
-    }
-
-    void use() {
-        glUseProgram(program);
     }
 
     GLuint getId() {return program;}
@@ -51,30 +47,6 @@ private:
     }
 
     GLuint program;
-
-    const char* vertexShader =
-            "attribute vec3 inPosition;\n"
-                    "attribute vec2 inCoord;\n"
-                    "uniform mat4 model;\n"
-                    "uniform mat4 view;\n"
-                    "uniform mat4 projection;\n"
-                    "\n"
-                    "varying vec2 texCoord;\n"
-                    "void main()\n"
-                    "{\n"
-                    "    texCoord = inCoord;\n"
-                    "    gl_Position = projection * view * model * vec4(inPosition, 1.0);\n"
-                    "}";
-
-    const char* fragmentShader =
-            "precision mediump float;\n"
-                    "varying vec2 texCoord;\n"
-                    "uniform sampler2D tex;\n"
-                    "void main()\n"
-                    "{\n"
-                    "    vec4 color = texture2D(tex, texCoord);\n"
-                    "    gl_FragColor = vec4(texCoord.x, texCoord.y, texCoord.x, 1.0);\n"
-                    "}";
 };
 
 #endif //CUBE_SHADER_H

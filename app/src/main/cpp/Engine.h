@@ -11,8 +11,11 @@
 
 class Engine {
 public:
-    void init(int width, int height);
+    void init(const char* vertexSource, const char* fragmentSource);
+    void changeAspectRatio(int width, int height);
     void draw();
+    void startTouch(float x, float y);
+    void processTouch(float x, float y);
 
 private:
     void createVertexBuffer();
@@ -21,6 +24,9 @@ private:
     GLuint vbo;
     int width;
     int height;
+    glm::vec2 startTouchPosition{0.0f, 0.0f};
+    glm::vec3 currentRotation{1.0f, 1.0f, 0.0f};
+    glm::mat4 projection;
 };
 
 #endif //CUBE_ENGINE_H

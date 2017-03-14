@@ -1,12 +1,15 @@
 #include "Engine.h"
 
-void Engine::init(int width, int height) {
-    this->width = width;
-    this->height = height;
-    shader.createProgram();
+void Engine::init(const char* vertexSource, const char* fragmentSource) {
+    shader.createProgram(vertexSource, fragmentSource);
     createVertexBuffer();
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+}
+
+void Engine::changeAspectRatio(int width, int height) {
+    this->width = width;
+    this->height = height;
+    projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 100.0f);
 }
 
 void Engine::draw() {
@@ -17,15 +20,10 @@ void Engine::draw() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glm::mat4 model;
-    model = glm::rotate(model, glm::radians(45.0f), glm::vec3(-1.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(90.0f), currentRotation);
 
     glm::mat4 view;
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -4.0f));
-
-    float aspectRatio = (float)width / (float)height;
-    glm::mat4 projection;
-    projection = glm::perspective(45.0f, aspectRatio, 0.1f, 100.0f);
-
 
     GLint modelLoc = glGetUniformLocation(shader.getId(), "model");
     GLint viewLoc = glGetUniformLocation(shader.getId(), "view");
@@ -44,7 +42,6 @@ void Engine::createVertexBuffer() {
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
-    auto x = sizeof(vertices);
 
     GLuint positionLoc = (GLuint)glGetAttribLocation(shader.getId(), "inPosition");
     glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), nullptr);
@@ -53,4 +50,13 @@ void Engine::createVertexBuffer() {
     glVertexAttribPointer(textureLoc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(textureLoc);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void Engine::startTouch(float x, float y) {
+    startTouchPosition = glm::vec2{x, y};
+}
+
+void Engine::processTouch(float x, float y) {
+    glm::vec2 delta = glm::vec2{x, y} - startTouchPosition;
+    currentRotation = glm::vec3(delta.x, delta.y, 0.0f);
 }
