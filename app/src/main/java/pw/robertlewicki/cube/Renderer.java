@@ -1,11 +1,14 @@
 package pw.robertlewicki.cube;
 
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Scanner;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -24,6 +27,7 @@ class Renderer implements GLSurfaceView.Renderer {
         String vertex = loadShaderFile("vertex.vert");
         String fragment = loadShaderFile("fragment.frag");
         init(vertex, fragment);
+        loadTexture();
     }
 
     @Override
@@ -51,9 +55,25 @@ class Renderer implements GLSurfaceView.Renderer {
         return "";
     }
 
+    private void loadTexture() {
+        try {
+            InputStream inputStream = assetManager.open("map_02.png");
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            ByteBuffer buffer = ByteBuffer.allocateDirect(width * height * 4);
+            bitmap.copyPixelsToBuffer(buffer);
+            buffer.position(0);
+            createTexture(width, height, buffer.array());
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public native void init(String vertexSource, String fragmentSource);
     public native void resetAspectRatio(int width, int height);
     public native void draw();
     public native void startTouch(float x, float y);
     public native void processTouch(float x, float y);
+    public native void createTexture(int width, int height, byte[] pixels);
 }

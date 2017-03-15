@@ -15,13 +15,7 @@ public:
         glLinkProgram(program);
         GLint status;
         glGetProgramiv(program, GL_LINK_STATUS, &status);
-        if(status == GL_FALSE) {
-            GLint length = 0;
-            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-            std::vector <GLchar> errorLog(length);
-            glGetProgramInfoLog(program, length, &length, &errorLog[0]);
-            // Log error
-        }
+        assert(status != GL_FALSE);
         glDeleteShader(vertex);
         glDeleteShader(fragment);
     }
@@ -35,14 +29,7 @@ private:
         glCompileShader(shader);
         GLint status;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-        if(status == GL_FALSE) {
-            GLint length = 0;
-            glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-            std::vector <GLchar> errorLog(length);
-            glGetShaderInfoLog(shader, length, &length, &errorLog[0]);
-            // Log error
-            return 0;
-        }
+        assert(status != GL_FALSE);
         return shader;
     }
 

@@ -18,6 +18,7 @@ void Engine::draw() {
 
     glUseProgram(shader.getId());
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
     glm::mat4 model;
     model = glm::rotate(model, glm::radians(90.0f), currentRotation);
@@ -35,6 +36,7 @@ void Engine::draw() {
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -59,4 +61,13 @@ void Engine::startTouch(float x, float y) {
 void Engine::processTouch(float x, float y) {
     glm::vec2 delta = glm::vec2{x, y} - startTouchPosition;
     currentRotation = glm::vec3(delta.x, delta.y, 0.0f);
+}
+
+void Engine::createTexture(int width, int height, GLvoid *data) {
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }

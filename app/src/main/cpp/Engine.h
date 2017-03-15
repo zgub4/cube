@@ -16,12 +16,14 @@ public:
     void draw();
     void startTouch(float x, float y);
     void processTouch(float x, float y);
+    void createTexture(int width, int height, GLvoid* data);
 
 private:
     void createVertexBuffer();
 
     Shader shader;
     GLuint vbo;
+    GLuint texture;
     int width;
     int height;
     glm::vec2 startTouchPosition{0.0f, 0.0f};
