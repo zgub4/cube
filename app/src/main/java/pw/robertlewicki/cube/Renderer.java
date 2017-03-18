@@ -76,4 +76,5 @@ class Renderer implements GLSurfaceView.Renderer {
     public native void startTouch(float x, float y);
     public native void processTouch(float x, float y);
     public native void createTexture(int width, int height, byte[] pixels);
+    public native void pinch(float scale);
 }

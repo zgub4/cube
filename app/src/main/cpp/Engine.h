@@ -17,6 +17,7 @@ public:
     void startTouch(float x, float y);
     void processTouch(float x, float y);
     void createTexture(int width, int height, GLvoid* data);
+    void setScale(float scale);
 
 private:
     void createVertexBuffer();
@@ -24,11 +25,10 @@ private:
     Shader shader;
     GLuint vbo;
     GLuint texture;
-    int width;
-    int height;
-    glm::vec2 startTouchPosition{0.0f, 0.0f};
+    glm::vec2 lastPosition{0.0f, 0.0f};
     glm::vec3 currentRotation{1.0f, 1.0f, 0.0f};
     glm::mat4 projection;
+    float currentScale = 1.0f;
 };
 
 #endif //CUBE_ENGINE_H

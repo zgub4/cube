@@ -27,11 +27,16 @@ extern "C" {
                                                                             jobject,
                                                                             float x,
                                                                             float y);
-JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_createTexture(JNIEnv* env,
-                                                                        jobject,
-                                                                        int width,
-                                                                        int height,
-                                                                         jbyteArray pixels);
+
+    JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_createTexture(JNIEnv* env,
+                                                                            jobject,
+                                                                            int width,
+                                                                            int height,
+                                                                            jbyteArray pixels);
+
+    JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_pinch(JNIEnv* env,
+                                                                     jobject,
+                                                                     float scale);
 }
 
 JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_init(JNIEnv* env,
@@ -76,4 +81,10 @@ JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_createTexture(JNIEnv*
     jboolean copied;
     GLvoid* pix = env->GetByteArrayElements(pixels, &copied);
     engine.createTexture(width, height, pix);
+}
+
+JNIEXPORT void JNICALL Java_pw_robertlewicki_cube_Renderer_pinch(JNIEnv* env,
+                                                                 jobject,
+                                                                 float scale) {
+    engine.setScale(scale);
 }

@@ -3,12 +3,11 @@
 void Engine::init(const char* vertexSource, const char* fragmentSource) {
     shader.createProgram(vertexSource, fragmentSource);
     createVertexBuffer();
+    setScale(0.0f);
     glEnable(GL_DEPTH_TEST);
 }
 
 void Engine::changeAspectRatio(int width, int height) {
-    this->width = width;
-    this->height = height;
     projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 100.0f);
 }
 
@@ -21,7 +20,11 @@ void Engine::draw() {
     glBindTexture(GL_TEXTURE_2D, texture);
 
     glm::mat4 model;
-    model = glm::rotate(model, glm::radians(90.0f), currentRotation);
+    static const GLfloat speed = 0.4f;
+    model = glm::rotate(model, glm::radians(currentRotation.y * speed), glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(-currentRotation.x * speed), glm::vec3(0.0f, -1.0f, 0.0f));
+
+    model = glm::scale(model, glm::vec3(currentScale, currentScale, currentScale));
 
     glm::mat4 view;
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -4.0f));
@@ -55,12 +58,14 @@ void Engine::createVertexBuffer() {
 }
 
 void Engine::startTouch(float x, float y) {
-    startTouchPosition = glm::vec2{x, y};
+    lastPosition = glm::vec2{x, y};
 }
 
 void Engine::processTouch(float x, float y) {
-    glm::vec2 delta = glm::vec2{x, y} - startTouchPosition;
-    currentRotation = glm::vec3(delta.x, delta.y, 0.0f);
+    auto current = glm::vec2{x, y};
+    auto delta = current - lastPosition;
+    lastPosition = current;
+    currentRotation += glm::vec3(delta.x, delta.y, 0.0f);
 }
 
 void Engine::createTexture(int width, int height, GLvoid *data) {
@@ -70,4 +75,9 @@ void Engine::createTexture(int width, int height, GLvoid *data) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Engine::setScale(float scale) {
+    if(currentScale + scale > 5.0f || currentScale + scale < 0.5f) return;
+    currentScale += scale;
 }
